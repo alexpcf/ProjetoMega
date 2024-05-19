@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 class Program
 {
@@ -31,8 +32,9 @@ class Program
             if (File.Exists(caminhoArquivo))
             {
                 var linhas = File.ReadAllLines(caminhoArquivo);
-                Console.WriteLine("Conteúdo do arquivo lido com sucesso.");
                 var jogos = ProcessarLinhas(linhas);
+                Console.WriteLine("Conteúdo do arquivo lido com sucesso.");
+
 
                 if (jogos.Count == 0)
                 {
@@ -84,8 +86,9 @@ class Program
     {
         var jogos = new List<int[]>();
 
-        foreach (var linha in linhas)
+        for (int i = 0; i < linhas.Length; i++)
         {
+            var linha = linhas[i];
             var partes = linha.Split(' ');
 
             if (partes.Length >= 8)
@@ -104,6 +107,14 @@ class Program
             {
                 Console.WriteLine($"Linha com formato inválido (partes insuficientes): {linha}");
             }
+
+            if ((i + 1) % (linhas.Length / 10) == 0)
+            {
+                Console.WriteLine($"Processamento de linhas: {(i + 1) * 100 / linhas.Length}% concluído");
+                Thread.Sleep(1);
+            }
+
+            
         }
 
         return jogos;
@@ -113,11 +124,17 @@ class Program
     {
         var frequencia = new ConcurrentDictionary<int, int>();
 
-        foreach (var jogo in jogos)
+        for (int i = 0; i < jogos.Count; i++)
         {
+            var jogo = jogos[i];
             foreach (var numero in jogo)
             {
                 frequencia.AddOrUpdate(numero, 1, (key, oldValue) => oldValue + 1);
+            }
+
+            if ((i + 1) % (jogos.Count / 10) == 0)
+            {
+                Console.WriteLine($"Cálculo de frequências: {(i + 1) * 100 / jogos.Count}% concluído");
                 Thread.Sleep(1);
             }
         }
@@ -148,6 +165,8 @@ class Program
 
             jogosGerados.Add(jogo);
             numerosOrdenados = numerosMaisSorteados.Keys.ToList(); // Reset para o próximo jogo
+
+            Console.WriteLine($"Geração de jogos: {(i + 1) * 100 / quantidadeJogos}% concluído");
         }
 
         return jogosGerados;
